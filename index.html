@@ -123,6 +123,27 @@ select{font:inherit;font-weight:700;border:2px solid var(--line);border-radius:1
 .tbtn.on{background:var(--ink);color:#fff}
 .tbtn.on .hp{color:#cfd6e0}
 
+/* modos */
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--chip);padding:4px;border-radius:14px}
+.mode{font:inherit;font-weight:800;font-size:.95rem;border:0;background:transparent;padding:10px 6px;border-radius:10px;cursor:pointer;color:var(--muted)}
+.mode.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,40,60,.15)}
+.mode:focus-visible{outline:3px solid var(--wood);outline-offset:2px}
+.mbox{display:flex;flex-direction:column;gap:10px}
+.mbox>.field{flex:none}
+.field input{font:inherit;font-weight:700;border:2px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;color:var(--ink);min-width:0}
+.ocards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ocard{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+#joinCode{font-family:var(--f-num);font-weight:700;font-size:1.4rem;letter-spacing:.25em;text-transform:uppercase;width:7ch;border:2px solid var(--line);border-radius:10px;padding:5px 10px;background:#fff;color:var(--ink)}
+#joinCode:focus-visible{outline:3px solid var(--wood);outline-offset:2px}
+.ostatus{border-radius:14px;padding:14px 16px;background:#fff1e4;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.ostatus.err{background:var(--bad-soft)}
+.bigcode{font-family:var(--f-num);font-weight:700;font-size:3.2rem;letter-spacing:.25em;color:var(--wood-deep);line-height:1}
+.waitmsg{margin:0;font-weight:700;color:var(--muted)}
+.opt.remote:disabled{cursor:default}
+.dots::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (prefers-reduced-motion: reduce){.dots::after{animation:none;content:"…"}}
+
 /* telas */
 #app[data-screen="setup"] .stage{display:none}
 #app:not([data-screen="setup"]) header.top,
@@ -206,11 +227,46 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
       <!-- CONFIGURAÇÃO -->
       <section class="panel" id="setup">
         <h2>Prepare o cerco</h2>
-        <div>
-          <div class="label" style="margin-bottom:8px">Jogadores ou equipes (2 a 4)</div>
-          <div class="players" id="plist"></div>
+        <div class="modes" role="tablist" aria-label="Modo de jogo">
+          <button class="mode on" role="tab" aria-selected="true" data-mode="local">Na mesma tela</button>
+          <button class="mode" role="tab" aria-selected="false" data-mode="robot">Contra o robô</button>
+          <button class="mode" role="tab" aria-selected="false" data-mode="online">Online</button>
         </div>
-        <div class="row"><button class="btn" id="addP">+ Adicionar jogador</button></div>
+        <div id="mLocal" class="mbox">
+          <div class="label">Jogadores ou equipes (2 a 4)</div>
+          <div class="players" id="plist"></div>
+          <div class="row"><button class="btn" id="addP">+ Adicionar jogador</button></div>
+        </div>
+        <div id="mRobot" class="mbox" hidden>
+          <div class="settings">
+            <label class="field"><span class="label">Seu nome</span><input id="robotName" maxlength="18" value="Jogador"></label>
+            <label class="field"><span class="label">Adversário</span>
+              <select id="botLevel">
+                <option value="facil">Robô Aprendiz (fácil)</option>
+                <option value="medio" selected>Robô Soldado (médio)</option>
+                <option value="dificil">Robô General (difícil)</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint">O robô também precisa acertar a pergunta e mirar a catapulta. Ele erra às vezes e vai melhorando a mira.</p>
+        </div>
+        <div id="mOnline" class="mbox" hidden>
+          <label class="field"><span class="label">Seu nome</span><input id="onName" maxlength="18" placeholder="Digite seu nome"></label>
+          <div class="ocards">
+            <div class="ocard">
+              <div class="label">Criar uma sala</div>
+              <p class="hint">Você recebe um código de 4 letras para passar ao colega.</p>
+              <div class="row"><button class="btn primary" id="createBtn">Criar sala</button></div>
+            </div>
+            <div class="ocard">
+              <div class="label">Entrar numa sala</div>
+              <p class="hint">Digite o código que aparece na tela do colega.</p>
+              <div class="row"><input id="joinCode" maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código da sala"><button class="btn primary" id="joinBtn">Entrar</button></div>
+            </div>
+          </div>
+          <div class="ostatus" id="oStatus" role="status" hidden></div>
+          <p class="hint">Quem cria a sala escolhe o nível e a muralha abaixo.</p>
+        </div>
         <div class="settings">
           <label class="field"><span class="label">Nível</span>
             <select id="level">
@@ -238,7 +294,7 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
             <li>Vence o último castelo de pé.</li>
           </ol>
         </div>
-        <div class="row"><button class="btn primary big" id="startBtn">Começar o cerco</button></div>
+        <div class="row" id="startRow"><button class="btn primary big" id="startBtn">Começar o cerco</button></div>
       </section>
 
       <!-- JOGO -->
@@ -246,11 +302,13 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
        <div class="qcol">
         <div class="turn">
           <span class="dot" id="turnDot"></span>
-          <span class="who">Vez de <span id="turnName"></span></span>
+          <span class="who" id="turnWho"></span>
           <span class="pill" id="qType"></span>
           <span class="pill" id="qDmg"></span>
+          <span class="pill" id="roomPill" hidden></span>
           <button class="btn quit" id="quitBtn">Sair da partida</button>
         </div>
+        <p class="waitmsg" id="waitMsg" hidden></p>
         <p class="qtext" id="qText"></p>
         <div class="tiles" id="qTiles"></div>
         <div class="opts" id="qOpts"></div>
@@ -394,6 +452,8 @@ function genQuestion(){
 }
 
 /* ---------- configuração ---------- */
+S.mode='local';S.me=0;S.cfg=null;
+const BOT={facil:{name:'Robô Aprendiz',acc:.55,err:10,min:4},medio:{name:'Robô Soldado',acc:.75,err:7,min:2},dificil:{name:'Robô General',acc:.9,err:4,min:1}};
 function renderSetup(){
   const box=$('#plist');box.innerHTML='';
   S.names.forEach((nm,i)=>{
@@ -407,9 +467,14 @@ function renderSetup(){
   box.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{S.names.splice(+b.dataset.rm,1);renderSetup();previewPlayers()}));
   $('#addP').hidden=S.names.length>=4;
 }
-function makePlayers(){
-  const hp=+$('#hp').value;
-  S.players=S.names.map((nm,i)=>({id:i,name:(nm.trim()||DEFAULT_NAMES[i]),color:COLORS[i],hp,maxHp:hp,alive:true,hits:0,misses:0,streak:0,angle:45,lastLand:null}));
+function setupNames(){
+  if(S.mode==='robot')return [($('#robotName').value.trim()||'Jogador'),BOT[$('#botLevel').value].name];
+  if(S.mode==='online')return [onlineName(),'Colega'];
+  return S.names.map((n,i)=>n.trim()||DEFAULT_NAMES[i]);
+}
+function makePlayers(cfg){
+  const hp=cfg?cfg.hp:+$('#hp').value,names=cfg?cfg.names:setupNames();
+  S.players=names.map((nm,i)=>({id:i,name:nm,color:COLORS[i],hp,maxHp:hp,alive:true,hits:0,misses:0,streak:0,angle:45,lastLand:null,botErr:null}));
   layout();
   // força fixa: o alcance máximo (a 45°) cobre o castelo mais distante com folga
   let far=0;S.players.forEach(p=>S.players.forEach(o=>{if(o!==p)far=Math.max(far,Math.abs(o.x-p.x)-p.w/2-50)}));
@@ -418,11 +483,29 @@ function makePlayers(){
 function previewPlayers(){if(S.phase==='setup')makePlayers()}
 function layout(){const n=S.players.length;S.players.forEach((p,i)=>{p.x=W*(.12+.76*i/(n-1));p.w=n<=2?118:n===3?110:100})}
 
+function setMode(m){
+  S.mode=m;
+  document.querySelectorAll('.mode').forEach(b=>{const on=b.dataset.mode===m;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});
+  $('#mLocal').hidden=m!=='local';$('#mRobot').hidden=m!=='robot';$('#mOnline').hidden=m!=='online';
+  $('#startRow').hidden=m==='online';
+  previewPlayers();
+}
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{
+  if(S.mode==='online'&&b.dataset.mode!=='online'){netClose();oStatus('')}
+  setMode(b.dataset.mode);
+}));
+['#robotName','#botLevel'].forEach(id=>$(id).addEventListener('input',previewPlayers));
 $('#addP').addEventListener('click',()=>{if(S.names.length<4){S.names.push(DEFAULT_NAMES[S.names.length]);renderSetup();previewPlayers()}});
 $('#hp').addEventListener('change',previewPlayers);
-$('#startBtn').addEventListener('click',startGame);
-$('#againBtn').addEventListener('click',startGame);
-function toSetup(){S.phase='setup';flying=[];S.trail=null;show('setup');makePlayers();window.scrollTo(0,0)}
+$('#startBtn').addEventListener('click',()=>startGame());
+$('#againBtn').addEventListener('click',()=>{
+  if(S.mode==='online'){if(S.phase!=='over'||!net.conn)return;netSend({t:'again'});restart();return}
+  restart();
+});
+function toSetup(){
+  if(S.mode==='online'){netClose();oStatus('')}
+  S.phase='setup';flying=[];S.trail=null;clearTimeout(nextT);show('setup');makePlayers();window.scrollTo(0,0);
+}
 $('#newBtn').addEventListener('click',toSetup);
 let quitArm=false,quitT;
 $('#quitBtn').addEventListener('click',e=>{
@@ -445,50 +528,101 @@ function fitField(){
 window.addEventListener('resize',fitField);
 try{new ResizeObserver(fitField).observe($('#stage'))}catch(e){}
 
-function startGame(){
-  S.level=$('#level').value;makePlayers();S.cur=0;flying=[];parts=[];
-  show('play');window.scrollTo(0,0);
+/* quem controla a vez atual neste aparelho */
+function controlling(){
+  if(S.mode==='robot')return S.cur===0;
+  if(S.mode==='online')return S.cur===S.me;
+  return true;
+}
+function startGame(cfg){
+  cfg=cfg||{names:setupNames(),level:$('#level').value,hp:+$('#hp').value,first:0,bot:$('#botLevel').value};
+  S.cfg=cfg;S.level=cfg.level;makePlayers(cfg);S.cur=cfg.first||0;flying=[];parts=[];net.queue=[];
+  $('#roomPill').hidden=S.mode!=='online';$('#roomPill').textContent='Sala '+(net.code||'');
+  $('#againBtn').hidden=false;$('#againBtn').textContent=S.mode==='online'?'Revanche':'Jogar de novo';
+  $('#newBtn').textContent=S.mode==='online'?'Sair da sala':'Mudar jogadores';
+  show('play');
   banner('Que comece o cerco!');
-  nextQuestion();
+  beginTurn();
+}
+function restart(){
+  const c=Object.assign({},S.cfg);
+  if(S.mode==='online')c.first=(c.first+1)%2;
+  startGame(c);
+  if(S.mode==='online'&&net.pendingQ&&!controlling()){const m=net.pendingQ;net.pendingQ=null;nextQuestion(m)}
 }
 
 function renderBoard(){}
 
 /* ---------- turno ---------- */
-let sel=new Set();
-function nextQuestion(){
+let sel=new Set(),nextT;
+function beginTurn(){
   const p=S.players[S.cur];
-  S.q=genQuestion();S.phase='question';S.aimDir=p.x<W/2?1:-1;S.loaded=false;sel=new Set();S.target=null;S.trail=null;S.shotAngle=p.angle;
-  {const n=S.players.length,gap=W*.76/(n-1),mx=Math.max(0,Math.min(200,gap/2-p.w/2-64));S.catOff=Math.round(Math.random()*mx/10)*10;}
-  const q=S.q;
-  $('#turnDot').style.background=p.color;$('#turnName').textContent=p.name;
-  $('#qType').textContent=q.label;
-  const fire=p.streak>=2;
-  $('#qDmg').textContent=`Ataque: ${q.dmg}${fire?' + 10 de fogo':''}`;
-  $('#qDmg').className='pill'+(fire?' fire':'');
+  if(S.mode==='online'&&!controlling()){
+    S.phase='waitq';S.loaded=false;S.trail=null;S.aimDir=p.x<W/2?1:-1;
+    setTurnHeader(p,null);
+    $('#qText').innerHTML=`<span class="dots">Aguardando a pergunta de ${esc(p.name)}</span>`;
+    $('#qTiles').hidden=true;$('#qOpts').innerHTML='';$('#confirmRow').hidden=true;
+    $('#fb').hidden=true;$('#fbWhy').hidden=true;$('#play').classList.remove('answered');$('#waitMsg').hidden=true;
+    return;
+  }
+  const n=S.players.length,gap=W*.76/(n-1),mx=Math.max(0,Math.min(200,gap/2-p.w/2-64));
+  const data={q:genQuestion(),catOff:Math.round(Math.random()*mx/10)*10};
+  if(S.mode==='online')netSend({t:'q',q:data.q,catOff:data.catOff});
+  nextQuestion(data);
+  if(S.mode==='robot'&&S.cur===1)botAnswer();
+}
+function setTurnHeader(p,q){
+  const mine=S.mode!=='local'&&controlling();
+  $('#turnDot').style.background=p.color;
+  $('#turnWho').textContent=mine?'Sua vez':`Vez de ${p.name}`;
+  $('#qType').hidden=!q;$('#qDmg').hidden=!q;
+  if(q){
+    $('#qType').textContent=q.label;
+    const fire=p.streak>=2;
+    $('#qDmg').textContent=`Ataque: ${q.dmg}${fire?' + 10 de fogo':''}`;
+    $('#qDmg').className='pill'+(fire?' fire':'');
+  }
+}
+function nextQuestion(data){
+  const p=S.players[S.cur];
+  S.q=data.q;S.catOff=data.catOff;
+  S.phase='question';S.aimDir=p.x<W/2?1:-1;S.loaded=false;sel=new Set();S.target=null;S.trail=null;S.shotAngle=p.angle;
+  const q=S.q,ctl=controlling();
+  setTurnHeader(p,q);
+  const wm=$('#waitMsg');
+  wm.hidden=ctl;
+  if(!ctl)wm.innerHTML=S.mode==='robot'?'<span class="dots">O robô está pensando</span>':`<span class="dots">${esc(p.name)} está respondendo</span>`;
   $('#qText').innerHTML=q.text;
   const tl=$('#qTiles');
   if(q.tiles){tl.hidden=false;tl.innerHTML=q.tiles.split('').map((c,i)=>i===q.blank?'<span class="tile blank">?</span>':`<span class="tile">${c}</span>`).join('')}
   else{tl.hidden=true;tl.innerHTML=''}
   const box=$('#qOpts');box.innerHTML='';
   q.options.forEach((o,i)=>{
-    const b=document.createElement('button');b.className='opt';b.id='opt-'+i;b.textContent=o.l;b.dataset.i=i;
+    const b=document.createElement('button');b.className='opt'+(ctl?'':' remote');b.id='opt-'+i;b.textContent=o.l;b.dataset.i=i;b.disabled=!ctl;
     b.addEventListener('click',()=>{
-      if(S.phase!=='question')return;
-      if(q.kind==='multi'){sel.has(o.v)?sel.delete(o.v):sel.add(o.v);b.classList.toggle('sel');updConfirm()}
-      else answer(o.v);
+      if(S.phase!=='question'||!controlling())return;
+      if(q.kind==='multi'){sel.has(o.v)?sel.delete(o.v):sel.add(o.v);b.classList.toggle('sel');updConfirm();if(S.mode==='online')netSend({t:'sel',v:[...sel]})}
+      else submitAnswer(o.v);
     });
     box.appendChild(b);
   });
-  $('#confirmRow').hidden=q.kind!=='multi';updConfirm();
+  $('#confirmRow').hidden=!(q.kind==='multi'&&ctl);updConfirm();
   $('#fb').hidden=true;$('#fbWhy').hidden=true;$('#play').classList.remove('answered');
-  renderBoard();
+}
+function showSel(v){
+  sel=new Set(v);
+  S.q.options.forEach((o,i)=>{const b=$('#opt-'+i);if(b)b.classList.toggle('sel',sel.has(o.v))});
 }
 function updConfirm(){$('#confirmBtn').textContent=sel.size?'Confirmar':'Confirmar (nenhum)'}
-$('#confirmBtn').addEventListener('click',()=>{if(S.phase==='question'&&S.q.kind==='multi')answer([...sel])});
+$('#confirmBtn').addEventListener('click',()=>{if(S.phase==='question'&&S.q.kind==='multi'&&controlling())submitAnswer([...sel])});
+function submitAnswer(v){
+  if(S.mode==='online')netSend({t:'ans',v});
+  answer(v);
+}
 
 function answer(v){
-  const q=S.q,p=S.players[S.cur];
+  const q=S.q,p=S.players[S.cur],ctl=controlling();
+  if(q.kind==='multi')sel=new Set(v);
   let correct;
   if(q.kind==='multi'){const a=q.answer;correct=v.length===a.length&&v.every(x=>a.includes(x))}
   else correct=v===q.answer;
@@ -502,16 +636,25 @@ function answer(v){
       if(o.v===q.answer)b.classList.add('right');else if(o.v===v)b.classList.add('wrong');else b.classList.add('dim');
     }
   });
-  $('#confirmRow').hidden=true;
+  $('#confirmRow').hidden=true;$('#waitMsg').hidden=true;
   const fb=$('#fb');fb.hidden=false;$('#play').classList.add('answered');
   $('#fbWhy').innerHTML=q.explain;$('#fbWhy').hidden=false;
+  const who=S.mode==='local'||ctl?'':`${p.name} `;
   if(correct){
     p.hits++;p.streak++;
     S.fire=p.streak>=3;S.dmg=q.dmg+(S.fire?10:0);
     fb.className='fb ok';$('#fbWhy').className='why ok';
-    $('#fbTitle').textContent=S.fire?'Acertou! Bola de fogo!':'Acertou!';
+    $('#fbTitle').textContent=(who?who+'acertou!':'Acertou!')+(S.fire?' Bola de fogo!':'');
     S.phase='aim';S.loaded=true;
     const foes=S.players.filter(o=>o.alive&&o!==p);
+    if(!ctl){
+      // vez do robô ou do colega: só acompanhar a mira
+      S.target=foes[0];S.aimDir=S.target.x>p.x?1:-1;
+      $('#fbAction').innerHTML=`<p class="result"><span class="dots">${esc(p.name)} está mirando</span></p>
+        <div class="facts"><span>Inclinação: <b id="remoteAng">${p.angle}°</b></span><span>Alvo: <b>${esc(S.target.name)}</b> · ${S.dmg} de dano</span></div>`;
+      if(S.mode==='robot')setTimeout(botAim,RM?100:700);
+      return;
+    }
     const last=p.lastLand?`<p class="hint">Seu último tiro: ${p.lastLand.angle}° · ${p.lastLand.msg}</p>`:'';
     $('#fbAction').innerHTML=`<div class="aim">
       <div class="label">Alvo · ${S.dmg} de dano</div>
@@ -528,7 +671,7 @@ function answer(v){
       ${last}
       <div class="row"><button class="btn primary big" id="fireBtn">Disparar!</button></div>
     </div>`;
-    const setAng=a=>{a=Math.max(ANG_MIN,Math.min(ANG_MAX,a));p.angle=a;S.shotAngle=a;$('#angle').value=a;$('#angOut').textContent=a+'°'};
+    const setAng=a=>{a=Math.max(ANG_MIN,Math.min(ANG_MAX,a));p.angle=a;S.shotAngle=a;$('#angle').value=a;$('#angOut').textContent=a+'°';sendAim(a)};
     $('#angle').addEventListener('input',e=>setAng(+e.target.value));
     $('#angDown').addEventListener('click',()=>setAng(p.angle-1));
     $('#angUp').addEventListener('click',()=>setAng(p.angle+1));
@@ -539,21 +682,36 @@ function answer(v){
   }else{
     p.misses++;p.streak=0;
     fb.className='fb bad';$('#fbWhy').className='why bad';
-    $('#fbTitle').textContent='Errou!';
-    $('#fbAction').innerHTML='<p style="margin:0;font-weight:700">A catapulta falhou e a pedra caiu no seu próprio castelo: −10.</p>';
+    $('#fbTitle').textContent=who?who+'errou!':'Errou!';
+    $('#fbAction').innerHTML=`<p style="margin:0;font-weight:700">A catapulta falhou e a pedra caiu no ${who?'próprio castelo':'seu próprio castelo'}: −10.</p>`;
     S.phase='anim';S.loaded=true;
     setTimeout(()=>{
       misfire(p).then(()=>{damage(p,10);afterHit()});
     },RM?100:500);
   }
-  renderBoard();
+}
+
+/* envia a mira ao colega (no máximo ~12 vezes por segundo) */
+let aimLast=0,aimT;
+function sendAim(a){
+  if(S.mode!=='online')return;
+  clearTimeout(aimT);
+  const now=performance.now();
+  if(now-aimLast>80){aimLast=now;netSend({t:'aim',a})}
+  else aimT=setTimeout(()=>{aimLast=performance.now();netSend({t:'aim',a:S.players[S.cur].angle})},90);
+}
+function showRemoteAim(a){
+  const p=S.players[S.cur];p.angle=a;S.shotAngle=a;
+  const el=$('#remoteAng');if(el)el.textContent=a+'°';
 }
 
 function selectTarget(t){
+  if(!controlling())return;
   const p=S.players[S.cur];
   S.target=t&&t.alive&&t!==p?t:null;
   document.querySelectorAll('#fbAction [data-t]').forEach(b=>b.classList.toggle('on',S.target&&+b.dataset.t===S.target.id));
   const fb=$('#fireBtn'),dist=$('#distOut');
+  if(!fb)return;
   if(S.target){
     S.aimDir=S.target.x>p.x?1:-1;
     dist.textContent=Math.round(Math.abs(S.target.x-launchPoint(p,p.angle).x)/PXM)+' m';
@@ -579,14 +737,28 @@ function simulate(p,deg,dir){
 }
 
 function fireShot(){
-  if(S.phase!=='aim'||!S.target)return;
+  if(S.phase!=='aim'||!S.target||!controlling())return;
   const p=S.players[S.cur],t=S.target,deg=p.angle,dir=t.x>p.x?1:-1;
-  S.phase='anim';S.aimDir=dir;
-  $('#fbAction').innerHTML=`<p class="result">Disparando a ${deg}° contra ${esc(t.name)}…</p>`;
-  if(S.fire)banner('Bola de fogo!');
+  S.aimDir=dir;
   const sim=simulate(p,deg,dir);
+  if(S.mode==='online')netSend({t:'fire',deg,tid:t.id,res:{hit:sim.hit?sim.hit.id:null,x:sim.x,y:sim.y,out:!!sim.out}});
+  doFire(deg,t,sim);
+}
+function remoteFire(m){
+  const p=S.players[S.cur],t=S.players[m.tid];if(!t)return;
+  const dir=t.x>p.x?1:-1;S.aimDir=dir;S.target=t;showRemoteAim(m.deg);
+  const sim=simulate(p,m.deg,dir);
+  // o resultado vale o que foi calculado no aparelho de quem disparou
+  sim.hit=m.res.hit==null?null:S.players[m.res.hit];sim.x=m.res.x;sim.y=m.res.y;sim.out=m.res.out;
+  doFire(m.deg,t,sim);
+}
+function doFire(deg,t,sim){
+  const p=S.players[S.cur],dir=t.x>p.x?1:-1,mine=S.mode==='local'||controlling();
+  p.angle=deg;S.shotAngle=deg;S.phase='anim';S.aimDir=dir;
+  $('#fbAction').innerHTML=`<p class="result">${mine?'Disparando':esc(p.name)+' disparou'} a ${deg}° contra ${esc(t.name)}…</p>`;
+  if(S.fire)banner('Bola de fogo!');
   shoot(p,sim,S.fire).then(()=>{
-    let msg,hint='',cls='';
+    let msg,hint='';
     const dm=Math.round(Math.abs(sim.x-t.x)/PXM),offField=sim.x<0||sim.x>W;
     if(sim.hit===t){damage(t,S.dmg);msg=`Em cheio! O castelo de ${esc(t.name)} perdeu ${S.dmg}.`;p.lastLand={angle:deg,msg:'acertou em cheio'}}
     else if(sim.hit){damage(sim.hit,S.dmg);msg=`A pedra bateu no castelo de ${esc(sim.hit.name)} pelo caminho: −${S.dmg}.`;
@@ -602,19 +774,35 @@ function fireShot(){
       texts.push({x:sim.x,y:GY-40,txt:'Errou!',color:'#fff',stroke:'#334',t0:performance.now()});
     }
     p.lastLand.x=sim.out?null:sim.x;
+    if(!mine)hint='';
     afterHit(`<p class="result">${msg}</p>${hint?`<p class="hint">${hint}</p>`:''}`);
   });
 }
 
 function afterHit(info){
-  renderBoard();
   const alive=S.players.filter(p=>p.alive);
-  if(alive.length<=1){setTimeout(()=>gameOver(alive[0]),RM?300:1300);$('#fbAction').innerHTML=info||'';return}
-  const nx=nextAlive(S.cur);
+  if(alive.length<=1){setTimeout(()=>gameOver(alive[0]),RM?300:1300);$('#fbAction').innerHTML=info||'';flushNet();return}
+  const nx=nextAlive(S.cur),np=S.players[nx];
   S.phase='wait';
-  $('#fbAction').innerHTML=`${info?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">${info}</div>`:''}<button class="btn primary big" id="nextBtn">Próximo: ${esc(S.players[nx].name)}</button>`;
-  $('#nextBtn').addEventListener('click',()=>{S.cur=nx;nextQuestion();window.scrollTo({top:0,behavior:RM?'auto':'smooth'})});
-  $('#nextBtn').focus({preventScroll:true});
+  const head=info?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">${info}</div>`:'';
+  let btn;
+  if(S.mode==='online'){
+    if(controlling()){btn=`<button class="btn primary big" id="nextBtn">Passar a vez para ${esc(np.name)}</button>`;
+      clearTimeout(nextT);nextT=setTimeout(()=>{if(S.phase==='wait')goNext(true)},7000)}
+    else btn=`<p class="waitmsg"><span class="dots">Aguardando ${esc(S.players[S.cur].name)} passar a vez</span></p>`;
+  }else if(S.mode==='robot')btn=`<button class="btn primary big" id="nextBtn">${nx===1?'Vez do robô':'Sua vez!'}</button>`;
+  else btn=`<button class="btn primary big" id="nextBtn">Próximo: ${esc(np.name)}</button>`;
+  $('#fbAction').innerHTML=head+btn;
+  const nb=$('#nextBtn');
+  if(nb){nb.addEventListener('click',()=>goNext(true));nb.focus({preventScroll:true})}
+  flushNet();
+}
+function goNext(local){
+  if(S.phase!=='wait')return;
+  clearTimeout(nextT);
+  if(S.mode==='online'&&local){if(!controlling())return;netSend({t:'next'})}
+  S.cur=nextAlive(S.cur);
+  beginTurn();
 }
 function nextAlive(i){const n=S.players.length;for(let k=1;k<=n;k++){const j=(i+k)%n;if(S.players[j].alive)return j}return i}
 
@@ -627,12 +815,167 @@ function damage(t,amt){
     shake=18;
   }
 }
-function gameOver(w){
-  S.phase='over';show('over');renderBoard();
-  $('#winner').innerHTML=w?`Vitória de <span style="color:${w.color}">${esc(w.name)}</span>`:'Empate';
-  if(w){banner(`${w.name} venceu!`);for(let k=0;k<4;k++)setTimeout(()=>burst(w.x+randInt(-60,60),GY-180,40,[w.color,'#ffd24a','#ffffff'],380,true),k*350)}
-  $('#stats').innerHTML=S.players.map(p=>{const tot=p.hits+p.misses;return `<tr><td><span class="dot" style="display:inline-block;vertical-align:-3px;margin-right:6px;background:${p.color}"></span>${esc(p.name)}</td><td class="num">${p.hits}</td><td class="num">${p.misses}</td><td class="num">${tot?Math.round(100*p.hits/tot)+'%':'–'}</td><td class="num">${p.hp}</td></tr>`}).join('');
+function statsRows(){
+  return S.players.map(p=>{const tot=p.hits+p.misses;return `<tr><td><span class="dot" style="display:inline-block;vertical-align:-3px;margin-right:6px;background:${p.color}"></span>${esc(p.name)}</td><td class="num">${p.hits}</td><td class="num">${p.misses}</td><td class="num">${tot?Math.round(100*p.hits/tot)+'%':'–'}</td><td class="num">${p.hp}</td></tr>`}).join('');
 }
+function gameOver(w){
+  S.phase='over';show('over');
+  let title=w?`Vitória de <span style="color:${w.color}">${esc(w.name)}</span>`:'Empate';
+  if(w&&S.mode==='online'&&w.id===S.me)title=`<span style="color:${w.color}">Você venceu!</span>`;
+  if(w&&S.mode==='robot'&&w.id===0)title=`<span style="color:${w.color}">Você venceu o robô!</span>`;
+  $('#winner').innerHTML=title;
+  if(w){banner(`${w.name} venceu!`);for(let k=0;k<4;k++)setTimeout(()=>burst(w.x+randInt(-60,60),GY-180,40,[w.color,'#ffd24a','#ffffff'],380,true),k*350)}
+  $('#stats').innerHTML=statsRows();
+}
+
+/* ---------- robô ---------- */
+function botAnswer(){
+  const q=S.q,b=BOT[S.cfg.bot||'medio'];
+  setTimeout(()=>{
+    if(S.mode!=='robot'||S.cur!==1||S.phase!=='question'||S.q!==q)return;
+    const right=Math.random()<b.acc;let v;
+    if(q.kind==='multi'){
+      if(right)v=q.answer.slice();
+      else{const d=pick(DIVS);v=q.answer.includes(d)?q.answer.filter(x=>x!==d):q.answer.concat(d)}
+    }else if(right)v=q.answer;
+    else v=pick(q.options.filter(o=>o.v!==q.answer)).v;
+    answer(v);
+  },RM?400:randInt(1800,3200));
+}
+function botAim(){
+  if(S.mode!=='robot'||S.cur!==1||S.phase!=='aim')return;
+  const p=S.players[1],t=S.target,b=BOT[S.cfg.bot||'medio'],dir=t.x>p.x?1:-1;S.aimDir=dir;
+  // o robô "calcula" a faixa de ângulos que acerta e mira no meio dela, com algum erro
+  const hits=[];for(let a=ANG_MIN;a<=ANG_MAX;a++){if(simulate(p,a,dir).hit===t)hits.push(a)}
+  const ideal=hits.length?hits[Math.floor(hits.length/2)]:62;
+  if(p.botErr==null)p.botErr=b.err;
+  const goal=Math.max(ANG_MIN,Math.min(ANG_MAX,Math.round(ideal+(Math.random()*2-1)*p.botErr)));
+  p.botErr=Math.max(b.min,p.botErr*.7);
+  const from=p.angle,t0=performance.now(),dur=RM?60:1500;
+  const step=()=>{
+    if(S.phase!=='aim')return;
+    const k=Math.min(1,(performance.now()-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    showRemoteAim(Math.round(from+(goal-from)*e));
+    if(k<1)requestAnimationFrame(step);
+    else setTimeout(()=>{if(S.phase==='aim')doFire(goal,t,simulate(p,goal,dir))},RM?100:700);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ---------- online (conexão direta entre os navegadores, via PeerJS) ---------- */
+const net={peer:null,conn:null,code:null,host:false,queue:[],pendingQ:null};
+const CODE_ABC='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',PEER_PREFIX='cerco-divisores-tiodanilo-';
+function onlineName(){return ($('#onName').value.trim()||'Jogador').slice(0,18)}
+function oStatus(html,err){const el=$('#oStatus');el.hidden=!html;el.innerHTML=html||'';el.classList.toggle('err',!!err)}
+function loadPeer(){
+  return new Promise((res,rej)=>{
+    if(window.Peer)return res();
+    const s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+    s.onload=()=>window.Peer?res():rej(new Error('peer'));s.onerror=()=>rej(new Error('load'));document.head.appendChild(s);
+  });
+}
+function netSend(m){try{if(net.conn&&net.conn.open)net.conn.send(m)}catch(e){}}
+function netClose(){
+  const c=net.conn,p=net.peer;net.conn=null;net.peer=null;net.code=null;net.queue=[];net.pendingQ=null;
+  try{c&&c.close()}catch(e){}
+  try{p&&p.destroy()}catch(e){}
+}
+function newCode(){return Array.from({length:4},()=>CODE_ABC[Math.floor(Math.random()*CODE_ABC.length)]).join('')}
+async function createRoom(){
+  oStatus('<p class="waitmsg"><span class="dots">Preparando a sala</span></p>');
+  try{await loadPeer()}catch(e){return oStatus('<p class="waitmsg">Não consegui carregar o modo online. Confira a internet e tente de novo.</p>',true)}
+  netClose();
+  const code=newCode(),peer=new Peer(PEER_PREFIX+code);
+  net.peer=peer;net.host=true;net.code=code;
+  peer.on('open',()=>{
+    if(net.peer!==peer)return;
+    oStatus(`<div class="label">Código da sala</div><div class="bigcode">${code}</div><p class="waitmsg"><span class="dots">Passe o código para o colega e aguarde ele entrar</span></p><button class="btn" id="cancelRoom">Cancelar</button>`);
+    $('#cancelRoom').addEventListener('click',()=>{netClose();oStatus('')});
+    $('#oStatus').scrollIntoView({block:'center',behavior:RM?'auto':'smooth'});
+  });
+  peer.on('connection',c=>{
+    if(net.peer!==peer)return;
+    if(net.conn){c.on('open',()=>{c.send({t:'full'});setTimeout(()=>c.close(),400)});return}
+    setupConn(c);
+  });
+  peer.on('error',e=>{
+    if(net.peer!==peer)return;
+    if(e.type==='unavailable-id'){createRoom();return}
+    netError(e);
+  });
+}
+async function joinRoom(){
+  const code=$('#joinCode').value.trim().toUpperCase();
+  if(!/^[A-Z0-9]{4}$/.test(code))return oStatus('<p class="waitmsg">Digite o código de 4 letras que aparece na tela do colega.</p>',true);
+  oStatus(`<p class="waitmsg"><span class="dots">Entrando na sala ${code}</span></p>`);
+  try{await loadPeer()}catch(e){return oStatus('<p class="waitmsg">Não consegui carregar o modo online. Confira a internet e tente de novo.</p>',true)}
+  netClose();
+  const peer=new Peer();
+  net.peer=peer;net.host=false;net.code=code;
+  peer.on('open',()=>{if(net.peer!==peer)return;setupConn(peer.connect(PEER_PREFIX+code,{reliable:true}))});
+  peer.on('error',e=>{
+    if(net.peer!==peer)return;
+    if(e.type==='peer-unavailable'){netClose();oStatus(`<p class="waitmsg">Não encontrei a sala ${code}. Confira o código e se o colega ainda está com a sala aberta.</p>`,true);return}
+    netError(e);
+  });
+  // se a conexão não abrir em 15 s, provavelmente a rede da escola bloqueia
+  setTimeout(()=>{if(net.peer===peer&&(!net.conn||!net.conn.open)&&S.phase==='setup'){netClose();oStatus('<p class="waitmsg">A conexão demorou demais. A rede pode estar bloqueando o jogo online. Tente de novo ou use outra rede.</p>',true)}},15000);
+}
+function setupConn(c){
+  net.conn=c;
+  c.on('open',()=>{
+    if(net.conn!==c)return;
+    if(!net.host){c.send({t:'hello',name:onlineName()});oStatus('<p class="waitmsg"><span class="dots">Conectado! Começando</span></p>')}
+  });
+  c.on('data',m=>{if(net.conn===c)onNet(m)});
+  c.on('close',()=>{if(net.conn===c)onNetLost()});
+  c.on('error',()=>{if(net.conn===c)onNetLost()});
+}
+function netError(e){
+  if(S.phase==='setup'){netClose();oStatus(`<p class="waitmsg">Não foi possível conectar (${esc(String(e.type||'erro'))}). Tente de novo.</p>`,true)}
+  else onNetLost();
+}
+function onNetLost(){
+  netClose();
+  if(S.mode!=='online')return;
+  if(S.phase==='setup'){oStatus('<p class="waitmsg">A conexão caiu. Crie a sala ou entre nela de novo.</p>',true);return}
+  clearTimeout(nextT);flying=[];
+  S.phase='over';show('over');
+  $('#winner').textContent='Seu colega saiu da sala';
+  $('#stats').innerHTML=statsRows();
+  $('#againBtn').hidden=true;$('#newBtn').textContent='Voltar ao início';
+}
+/* mensagens que chegam durante uma animação esperam ela terminar */
+function flushNet(){const q=net.queue;net.queue=[];q.forEach(onNet)}
+function onNet(m){
+  if(!m||typeof m!=='object')return;
+  if(S.phase==='anim'&&['ans','aim','fire','next','sel','q','again'].includes(m.t)){net.queue.push(m);return}
+  switch(m.t){
+    case 'hello':{
+      if(!net.host||S.phase!=='setup')return;
+      const cfg={names:[onlineName(),String(m.name||'Colega').slice(0,18)],level:$('#level').value,hp:+$('#hp').value,first:Math.random()<.5?0:1};
+      netSend({t:'start',cfg});S.me=0;oStatus('');startGame(cfg);break;}
+    case 'start':
+      if(net.host||S.phase!=='setup')return;
+      S.me=1;oStatus('');startGame(m.cfg);break;
+    case 'full':netClose();oStatus('<p class="waitmsg">Essa sala já tem dois jogadores. Peça um novo código.</p>',true);break;
+    case 'q':
+      if(S.phase==='over'){net.pendingQ=m;return}
+      if(S.phase==='waitq'&&!controlling())nextQuestion(m);
+      break;
+    case 'sel':if(S.phase==='question'&&!controlling())showSel(m.v);break;
+    case 'ans':if(S.phase==='question'&&!controlling())answer(m.v);break;
+    case 'aim':if(S.phase==='aim'&&!controlling())showRemoteAim(m.a);break;
+    case 'fire':if(S.phase==='aim'&&!controlling())remoteFire(m);break;
+    case 'next':if(S.phase==='wait'&&!controlling())goNext(false);break;
+    case 'again':if(S.phase==='over')restart();break;
+  }
+}
+$('#createBtn').addEventListener('click',createRoom);
+$('#joinBtn').addEventListener('click',joinRoom);
+$('#joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
+$('#joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+window.addEventListener('pagehide',()=>netClose());
 
 let bannerT;
 function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.add('show');clearTimeout(bannerT);bannerT=setTimeout(()=>b.classList.remove('show'),1700)}
