@@ -852,14 +852,16 @@ function botAim(){
   const goal=Math.max(ANG_MIN,Math.min(ANG_MAX,Math.round(ideal+(Math.random()*2-1)*p.botErr)));
   p.botErr=Math.max(b.min,p.botErr*.7);
   const from=p.angle,t0=performance.now(),dur=RM?60:1500;
+  let fired=false;
+  const fireNow=()=>{if(fired||S.phase!=='aim')return;fired=true;showRemoteAim(goal);doFire(goal,t,simulate(p,goal,dir))};
   const step=()=>{
-    if(S.phase!=='aim')return;
+    if(S.phase!=='aim'||fired)return;
     const k=Math.min(1,(performance.now()-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
     showRemoteAim(Math.round(from+(goal-from)*e));
     if(k<1)requestAnimationFrame(step);
-    else setTimeout(()=>{if(S.phase==='aim')doFire(goal,t,simulate(p,goal,dir))},RM?100:700);
   };
   requestAnimationFrame(step);
+  setTimeout(fireNow,dur+(RM?100:700));
 }
 
 /* ---------- online (conexão direta entre os navegadores, via PeerJS) ---------- */
@@ -1009,6 +1011,12 @@ function armAngle(now){
   S.armAnim=null;return rest;
 }
 const ARM=46;
+/* põe a pedra no ar; se o navegador pausar a animação (aba escondida), o resultado sai mesmo assim */
+function launch(f){
+  flying.push(f);
+  const ms=f.pts?f.pts.length/(120*f.speed)*1000:f.dur;
+  setTimeout(()=>{if(!f.done){f.done=true;flying=flying.filter(x=>x!==f);f.onHit()}},ms+600);
+}
 function pivotOf(p){return {x:p.x+S.aimDir*(p.w/2+34+S.catOff),y:GY-44}}
 function launchPoint(p,deg){const pv=pivotOf(p),r=(deg??60)*Math.PI/180;return {x:pv.x+S.aimDir*ARM*Math.cos(r),y:pv.y-ARM*Math.sin(r)}}
 
@@ -1017,7 +1025,7 @@ function shoot(p,sim,fire){
     const deg=S.shotAngle,up=RM?60:220;S.armAnim={t0:performance.now(),up,deg,from:-deg*Math.PI/180};
     setTimeout(()=>{
       S.loaded=false;
-      flying.push({pts:sim.pts,t0:performance.now(),speed:RM?6:1.5,fire,onHit:()=>{
+      launch({pts:sim.pts,t0:performance.now(),speed:RM?6:1.5,fire,onHit:()=>{
         S.trail=sim.pts;impact(sim.x,Math.min(sim.y,GY-4),fire);res();}});
     },up);
   });
@@ -1027,7 +1035,7 @@ function misfire(p){
     const up=RM?60:160;S.armAnim={t0:performance.now(),up,deg:80};
     setTimeout(()=>{
       S.loaded=false;const lp=launchPoint(p,80);
-      flying.push({sx:lp.x,sy:lp.y,tx:p.x,ty:GY-90,h:260,t0:performance.now(),dur:RM?350:1300,fire:false,onHit:()=>{impact(p.x,GY-90,false);res()}});
+      launch({sx:lp.x,sy:lp.y,tx:p.x,ty:GY-90,h:260,t0:performance.now(),dur:RM?350:1300,fire:false,onHit:()=>{impact(p.x,GY-90,false);res()}});
     },up);
   });
 }
@@ -1200,7 +1208,8 @@ function draw(now){
     if(f.fire){ctx.fillStyle='rgba(255,180,60,.45)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff7a1f'}else ctx.fillStyle='#7d776d';
     ctx.beginPath();ctx.moveTo(-9,-3);ctx.lineTo(-3,-9);ctx.lineTo(7,-7);ctx.lineTo(9,3);ctx.lineTo(1,9);ctx.lineTo(-8,6);ctx.closePath();ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
-    if(k>=1){f.onHit();return false}return true;
+    if(f.done)return false;
+    if(k>=1){f.done=true;f.onHit();return false}return true;
   });
   parts.forEach(q=>{
     const al=Math.max(0,q.life/q.max);
