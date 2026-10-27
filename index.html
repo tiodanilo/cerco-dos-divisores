@@ -28,6 +28,7 @@
   --f-num:"Fredoka", "Nunito", system-ui, sans-serif;
   color-scheme: light;
 }
+[hidden]{display:none!important}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--sky);color:var(--ink)}
 body{font-family:var(--f-body);font-size:16px;line-height:1.45;
@@ -109,6 +110,27 @@ select{font:inherit;font-weight:700;border:2px solid var(--line);border-radius:1
 .tbtn{display:flex;align-items:center;gap:8px;font:inherit;font-weight:800;font-size:1.05rem;padding:12px 16px;border-radius:12px;border:2px solid var(--ink);background:#fff;cursor:pointer;color:var(--ink)}
 .tbtn:hover{background:#fff1e4}
 .tbtn .hp{font-family:var(--f-num);font-weight:600;color:var(--muted)}
+.tbtn.on{background:var(--ink);color:#fff}
+.tbtn.on .hp{color:#cfd6e0}
+
+/* telas */
+#app[data-screen="setup"] .stage{display:none}
+#app:not([data-screen="setup"]) header.top,
+#app:not([data-screen="setup"]) .rules{display:none}
+#app:not([data-screen="setup"]) .grid{grid-template-columns:minmax(0,1fr)}
+.turn .quit{margin-left:auto;padding:6px 12px;font-size:.85rem}
+
+/* mira */
+.aim{display:flex;flex-direction:column;gap:12px;background:#fff;border-radius:12px;padding:14px}
+.aimrow{display:flex;align-items:center;gap:10px}
+.aimrow input[type=range]{flex:1;min-width:0;accent-color:var(--wood);height:28px}
+.stepbtn{font:inherit;font-family:var(--f-num);font-weight:700;font-size:1.4rem;width:44px;height:44px;border-radius:12px;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;flex:none}
+.stepbtn:hover{border-color:var(--wood)}
+.deg{font-family:var(--f-num);font-weight:700;font-size:2rem;min-width:3ch;text-align:right;color:var(--wood-deep);font-variant-numeric:tabular-nums}
+.facts{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.92rem;color:var(--muted)}
+.facts b{color:var(--ink);font-family:var(--f-num);font-weight:600}
+.result{font-size:1.08rem;font-weight:800;margin:0}
+.hint{margin:0;color:var(--muted);font-size:.95rem}
 
 /* regras */
 .rules{background:#2b2218;color:#f6ecdc;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px}
@@ -129,13 +151,12 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
 </head>
 <body>
 
-<div class="wrap">
+<div class="wrap" id="app" data-screen="setup">
   <header class="top">
     <div>
       <h1>Cerco dos Divisores</h1>
-      <p class="tag">Acerte o critério de divisibilidade, carregue a catapulta e derrube os castelos adversários. <b>Divisibilidade por 2, 3, 5, 9 e 10 · 6º ano</b></p>
+      <p class="tag">Acerte o critério de divisibilidade, mire a catapulta e derrube os castelos adversários. <b>Divisibilidade por 2, 3, 5, 9 e 10 · 6º ano</b></p>
     </div>
-    <button class="btn" id="rulesBtn" aria-pressed="false">Mostrar regras</button>
   </header>
 
   <div class="stage">
@@ -143,8 +164,6 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
     <div class="banner" id="banner"></div>
     <img class="mark" alt="Tiodanilo" src="data:image/png;base64,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">
   </div>
-
-  <div class="board" id="board" hidden></div>
 
   <div class="grid">
     <div>
@@ -176,7 +195,8 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
           <div class="label" style="margin-bottom:6px">Como jogar</div>
           <ol class="how">
             <li>Na sua vez, responda a uma pergunta sobre divisibilidade.</li>
-            <li>Acertou: escolha um castelo adversário e dispare a catapulta.</li>
+            <li>Acertou: escolha um castelo adversário, ajuste a inclinação da catapulta e dispare.</li>
+            <li>A força da catapulta é sempre a mesma. Só a inclinação decide onde a pedra cai.</li>
             <li>Errou: a catapulta falha e a pedra cai no seu próprio castelo (−10).</li>
             <li>Três acertos seguidos viram bola de fogo: +10 de dano.</li>
             <li>Vence o último castelo de pé.</li>
@@ -192,6 +212,7 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
           <span class="who">Vez de <span id="turnName"></span></span>
           <span class="pill" id="qType"></span>
           <span class="pill" id="qDmg"></span>
+          <button class="btn quit" id="quitBtn">Sair da partida</button>
         </div>
         <p class="qtext" id="qText"></p>
         <div class="tiles" id="qTiles"></div>
@@ -219,13 +240,14 @@ td.num,th.num{text-align:right;font-family:var(--f-num)}
       </section>
     </div>
 
-    <aside class="rules" id="rules" hidden>
+    <aside class="rules" id="rules">
       <h2>Pergaminho das regras</h2>
       <div class="rule"><div class="n">2</div><div><p>Termina em algarismo par: 0, 2, 4, 6 ou 8.</p><small>3.574 termina em 4</small></div></div>
       <div class="rule"><div class="n">3</div><div><p>A soma dos algarismos é divisível por 3.</p><small>471 → 4+7+1 = 12</small></div></div>
       <div class="rule"><div class="n">5</div><div><p>Termina em 0 ou em 5.</p><small>835 termina em 5</small></div></div>
       <div class="rule"><div class="n">9</div><div><p>A soma dos algarismos é divisível por 9.</p><small>5.481 → 5+4+8+1 = 18</small></div></div>
       <div class="rule"><div class="n">10</div><div><p>Termina em 0.</p><small>2.190 termina em 0</small></div></div>
+      <div class="rule"><div class="n">∠</div><div><p>Catapulta: com a mesma força, 45° lança a pedra mais longe.</p><small>Ângulos mais baixos ou mais altos caem mais perto</small></div></div>
     </aside>
   </div>
 </div>
@@ -240,7 +262,9 @@ const DIVS=[2,3,5,9,10];
 const LEN={facil:[2,3],medio:[3,4],desafio:[4,6]};
 const RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const S={players:[],cur:0,level:'medio',maxHp:100,phase:'setup',q:null,aimDir:1,dmg:0,fire:false,names:DEFAULT_NAMES.slice(0,2),armAnim:null,loaded:false};
+const S={players:[],cur:0,level:'medio',maxHp:100,phase:'setup',q:null,aimDir:1,dmg:0,fire:false,names:DEFAULT_NAMES.slice(0,2),armAnim:null,loaded:false,target:null,v:500,trail:null,shotAngle:45,catOff:0};
+/* física: 10 px = 1 m; força (velocidade) igual para todos os disparos da partida */
+const PXM=10,G=600,ANG_MIN=30,ANG_MAX=85,CASTLE_H=128;
 
 /* ---------- utilidades ---------- */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -341,40 +365,45 @@ function renderSetup(){
 }
 function makePlayers(){
   const hp=+$('#hp').value;
-  S.players=S.names.map((nm,i)=>({id:i,name:(nm.trim()||DEFAULT_NAMES[i]),color:COLORS[i],hp,maxHp:hp,alive:true,hits:0,misses:0,streak:0}));
+  S.players=S.names.map((nm,i)=>({id:i,name:(nm.trim()||DEFAULT_NAMES[i]),color:COLORS[i],hp,maxHp:hp,alive:true,hits:0,misses:0,streak:0,angle:45,lastLand:null}));
   layout();
+  // força fixa: o alcance máximo (a 45°) cobre o castelo mais distante com folga
+  let far=0;S.players.forEach(p=>S.players.forEach(o=>{if(o!==p)far=Math.max(far,Math.abs(o.x-p.x)-p.w/2-50)}));
+  S.v=Math.sqrt(G*far*1.4);
 }
 function previewPlayers(){if(S.phase==='setup')makePlayers()}
-function layout(){const n=S.players.length;S.players.forEach((p,i)=>{p.x=W*(i+.5)/n;p.w=n<=2?150:n===3?130:112})}
+function layout(){const n=S.players.length;S.players.forEach((p,i)=>{p.x=W*(.12+.76*i/(n-1));p.w=n<=2?118:n===3?110:100})}
 
 $('#addP').addEventListener('click',()=>{if(S.names.length<4){S.names.push(DEFAULT_NAMES[S.names.length]);renderSetup();previewPlayers()}});
 $('#hp').addEventListener('change',previewPlayers);
 $('#startBtn').addEventListener('click',startGame);
 $('#againBtn').addEventListener('click',startGame);
-$('#newBtn').addEventListener('click',()=>{S.phase='setup';show('setup');$('#board').hidden=true;makePlayers()});
-$('#rulesBtn').addEventListener('click',e=>{const on=$('#rules').hidden;$('#rules').hidden=!on;e.currentTarget.setAttribute('aria-pressed',String(on));e.currentTarget.textContent=on?'Esconder regras':'Mostrar regras'});
+function toSetup(){S.phase='setup';flying=[];S.trail=null;show('setup');makePlayers();window.scrollTo(0,0)}
+$('#newBtn').addEventListener('click',toSetup);
+let quitArm=false,quitT;
+$('#quitBtn').addEventListener('click',e=>{
+  if(!quitArm){quitArm=true;e.currentTarget.textContent='Toque de novo para sair';clearTimeout(quitT);
+    quitT=setTimeout(()=>{quitArm=false;$('#quitBtn').textContent='Sair da partida'},3000);return}
+  quitArm=false;$('#quitBtn').textContent='Sair da partida';toSetup();
+});
 
-function show(id){['setup','play','over'].forEach(k=>$('#'+k).hidden=k!==id)}
+function show(id){['setup','play','over'].forEach(k=>$('#'+k).hidden=k!==id);$('#app').dataset.screen=id}
 
 function startGame(){
-  S.level=$('#level').value;makePlayers();S.cur=0;
-  show('play');$('#board').hidden=false;
+  S.level=$('#level').value;makePlayers();S.cur=0;flying=[];parts=[];
+  show('play');window.scrollTo(0,0);
   banner('Que comece o cerco!');
   nextQuestion();
 }
 
-/* ---------- placar ---------- */
-function renderBoard(){
-  $('#board').innerHTML=S.players.map((p,i)=>`<div class="pchip ${i===S.cur&&S.phase!=='over'?'active':''} ${p.alive?'':'dead'}">
-    <span class="dot" style="background:${p.color}"></span>${esc(p.name)}
-    <span class="hp">${p.alive?`${p.hp}/${p.maxHp}`:'derrubado'}</span></div>`).join('');
-}
+function renderBoard(){}
 
 /* ---------- turno ---------- */
 let sel=new Set();
 function nextQuestion(){
   const p=S.players[S.cur];
-  S.q=genQuestion();S.phase='question';S.aimDir=p.x<W/2?1:-1;S.loaded=false;sel=new Set();
+  S.q=genQuestion();S.phase='question';S.aimDir=p.x<W/2?1:-1;S.loaded=false;sel=new Set();S.target=null;S.trail=null;S.shotAngle=p.angle;
+  {const n=S.players.length,gap=W*.76/(n-1),mx=Math.max(0,Math.min(200,gap/2-p.w/2-64));S.catOff=Math.round(Math.random()*mx/10)*10;}
   const q=S.q;
   $('#turnDot').style.background=p.color;$('#turnName').textContent=p.name;
   $('#qType').textContent=q.label;
@@ -425,12 +454,32 @@ function answer(v){
     S.fire=p.streak>=3;S.dmg=q.dmg+(S.fire?10:0);
     fb.className='fb ok';
     $('#fbTitle').textContent=S.fire?'Acertou! Bola de fogo!':'Acertou!';
-    S.phase='target';S.loaded=true;
+    S.phase='aim';S.loaded=true;
     const foes=S.players.filter(o=>o.alive&&o!==p);
-    $('#fbAction').innerHTML=`<p style="margin:0 0 8px;font-weight:700">Escolha o castelo que vai receber ${S.dmg} de dano (ou toque nele no campo):</p><div class="targets">`+
-      foes.map(o=>`<button class="tbtn" data-t="${o.id}"><span class="dot" style="background:${o.color}"></span>${esc(o.name)} <span class="hp">${o.hp}</span></button>`).join('')+'</div>';
-    $('#fbAction').querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>fireAt(S.players[+b.dataset.t])));
-    $('#fbAction').querySelectorAll('[data-t]').forEach(b=>b.addEventListener('mouseenter',()=>{const t=S.players[+b.dataset.t];S.aimDir=t.x>p.x?1:-1}));
+    const last=p.lastLand?`<p class="hint">Seu último tiro: ${p.lastLand.angle}° · ${p.lastLand.msg}</p>`:'';
+    $('#fbAction').innerHTML=`<div class="aim">
+      <div class="label">Alvo · ${S.dmg} de dano</div>
+      ${foes.length>1?'<div class="targets">'+foes.map(o=>`<button class="tbtn" data-t="${o.id}"><span class="dot" style="background:${o.color}"></span>${esc(o.name)} <span class="hp">${o.hp}</span></button>`).join('')+'</div>':
+        `<div style="font-weight:800;display:flex;align-items:center;gap:8px"><span class="dot" style="background:${foes[0].color}"></span>${esc(foes[0].name)}</div>`}
+      <label class="label" for="angle">Inclinação da catapulta</label>
+      <div class="aimrow">
+        <button class="stepbtn" id="angDown" aria-label="Diminuir 1 grau">−</button>
+        <input type="range" id="angle" min="${ANG_MIN}" max="${ANG_MAX}" step="1" value="${p.angle}">
+        <button class="stepbtn" id="angUp" aria-label="Aumentar 1 grau">+</button>
+        <output class="deg" id="angOut" for="angle">${p.angle}°</output>
+      </div>
+      <div class="facts"><span>Distância até o alvo: <b id="distOut">–</b></span><span>Força: <b>sempre a mesma</b></span></div>
+      ${last}
+      <div class="row"><button class="btn primary big" id="fireBtn">Disparar!</button></div>
+    </div>`;
+    const setAng=a=>{a=Math.max(ANG_MIN,Math.min(ANG_MAX,a));p.angle=a;S.shotAngle=a;$('#angle').value=a;$('#angOut').textContent=a+'°'};
+    $('#angle').addEventListener('input',e=>setAng(+e.target.value));
+    $('#angDown').addEventListener('click',()=>setAng(p.angle-1));
+    $('#angUp').addEventListener('click',()=>setAng(p.angle+1));
+    $('#fbAction').querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>selectTarget(S.players[+b.dataset.t])));
+    $('#fireBtn').addEventListener('click',fireShot);
+    selectTarget(foes.length===1?foes[0]:null);
+    $('#fireBtn').scrollIntoView({block:'nearest',behavior:RM?'auto':'smooth'});
   }else{
     p.misses++;p.streak=0;
     fb.className='fb bad';
@@ -444,21 +493,70 @@ function answer(v){
   renderBoard();
 }
 
-function fireAt(t){
-  if(S.phase!=='target'||!t.alive)return;
-  const p=S.players[S.cur];S.phase='anim';S.aimDir=t.x>p.x?1:-1;
-  $('#fbAction').innerHTML=`<p style="margin:0;font-weight:700">Disparando contra ${esc(t.name)}…</p>`;
-  if(S.fire)banner('Bola de fogo!');
-  shoot(p,t,S.fire).then(()=>{damage(t,S.dmg);afterHit()});
+function selectTarget(t){
+  const p=S.players[S.cur];
+  S.target=t&&t.alive&&t!==p?t:null;
+  document.querySelectorAll('#fbAction [data-t]').forEach(b=>b.classList.toggle('on',S.target&&+b.dataset.t===S.target.id));
+  const fb=$('#fireBtn'),dist=$('#distOut');
+  if(S.target){
+    S.aimDir=S.target.x>p.x?1:-1;
+    dist.textContent=Math.round(Math.abs(S.target.x-launchPoint(p,p.angle).x)/PXM)+' m';
+    fb.disabled=false;fb.textContent='Disparar!';
+  }else{dist.textContent='–';fb.disabled=true;fb.textContent='Escolha um alvo'}
 }
 
-function afterHit(){
+/* trajetória: lançamento oblíquo com gravidade, sem resistência do ar */
+function simulate(p,deg,dir){
+  const lp=launchPoint(p,deg),r=deg*Math.PI/180,dt=1/120;
+  let x=lp.x,y=lp.y,vx=dir*S.v*Math.cos(r),vy=-S.v*Math.sin(r);
+  const pts=[[x,y]];
+  for(let i=0;i<3000;i++){
+    vy+=G*dt;x+=vx*dt;y+=vy*dt;pts.push([x,y]);
+    for(const c of S.players){
+      if(c===p||!c.alive)continue;
+      if(Math.abs(x-c.x)<=c.w/2&&y>=GY-CASTLE_H)return {pts,hit:c,x,y};
+    }
+    if(y>=GY){pts[pts.length-1]=[x,GY];return {pts,hit:null,x,y:GY}}
+    if(x<-700||x>W+700)return {pts,hit:null,out:true,x,y};
+  }
+  return {pts,hit:null,out:true,x,y};
+}
+
+function fireShot(){
+  if(S.phase!=='aim'||!S.target)return;
+  const p=S.players[S.cur],t=S.target,deg=p.angle,dir=t.x>p.x?1:-1;
+  S.phase='anim';S.aimDir=dir;
+  $('#fbAction').innerHTML=`<p class="result">Disparando a ${deg}° contra ${esc(t.name)}…</p>`;
+  if(S.fire)banner('Bola de fogo!');
+  const sim=simulate(p,deg,dir);
+  shoot(p,sim,S.fire).then(()=>{
+    let msg,hint='',cls='';
+    const dm=Math.round(Math.abs(sim.x-t.x)/PXM),offField=sim.x<0||sim.x>W;
+    if(sim.hit===t){damage(t,S.dmg);msg=`Em cheio! O castelo de ${esc(t.name)} perdeu ${S.dmg}.`;p.lastLand={angle:deg,msg:'acertou em cheio'}}
+    else if(sim.hit){damage(sim.hit,S.dmg);msg=`A pedra bateu no castelo de ${esc(sim.hit.name)} pelo caminho: −${S.dmg}.`;
+      hint='Para passar por cima de um castelo, a pedra precisa subir mais: tente um ângulo maior.';p.lastLand={angle:deg,msg:`bateu em ${esc(sim.hit.name)}`}}
+    else if(sim.out){msg='A pedra saiu do campo de batalha.';hint=deg>=45?'Tente aumentar a inclinação.':'Tente diminuir a inclinação.';p.lastLand={angle:deg,msg:'saiu do campo'}}
+    else if(Math.abs(sim.x-t.x)<=t.w/2+28){const h=Math.round(S.dmg/2);damage(t,h);msg=`Raspou na muralha! Metade do dano: −${h}.`;p.lastLand={angle:deg,msg:'raspou'}}
+    else{
+      const short=(sim.x-t.x)*dir<0;
+      msg=short?`A pedra caiu ${dm} m antes do castelo.`:`A pedra passou ${dm} m do castelo${offField?' e caiu fora do campo':''}.`;
+      const up=short?deg<45:deg>=45;
+      hint=(short?'Faltou alcance. ':'Foi longe demais. ')+(up?`Tente <b>aumentar</b> a inclinação (mais que ${deg}°).`:`Tente <b>diminuir</b> a inclinação (menos que ${deg}°).`)+(deg>=45?' Acima de 45°, quanto mais inclinada, mais perto a pedra cai.':' Abaixo de 45°, quanto mais inclinada, mais longe a pedra vai.');
+      p.lastLand={angle:deg,msg:short?`caiu ${dm} m antes`:`passou ${dm} m`};
+      texts.push({x:sim.x,y:GY-40,txt:'Errou!',color:'#fff',stroke:'#334',t0:performance.now()});
+    }
+    p.lastLand.x=sim.out?null:sim.x;
+    afterHit(`<p class="result">${msg}</p>${hint?`<p class="hint">${hint}</p>`:''}`);
+  });
+}
+
+function afterHit(info){
   renderBoard();
   const alive=S.players.filter(p=>p.alive);
-  if(alive.length<=1){setTimeout(()=>gameOver(alive[0]),RM?300:1300);$('#fbAction').innerHTML='';return}
+  if(alive.length<=1){setTimeout(()=>gameOver(alive[0]),RM?300:1300);$('#fbAction').innerHTML=info||'';return}
   const nx=nextAlive(S.cur);
   S.phase='wait';
-  $('#fbAction').innerHTML=`<button class="btn primary big" id="nextBtn">Próximo: ${esc(S.players[nx].name)}</button>`;
+  $('#fbAction').innerHTML=`${info?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">${info}</div>`:''}<button class="btn primary big" id="nextBtn">Próximo: ${esc(S.players[nx].name)}</button>`;
   $('#nextBtn').addEventListener('click',()=>{S.cur=nx;nextQuestion();window.scrollTo({top:0,behavior:RM?'auto':'smooth'})});
   $('#nextBtn').focus({preventScroll:true});
 }
@@ -499,32 +597,37 @@ function burst(x,y,n,cols,sp,confetti){
 function smoke(x,y){parts.push({x,y,vx:(Math.random()-.5)*20,vy:-30-Math.random()*20,life:1.6,max:1.6,c:'rgba(90,90,90,',s:6,g:0,type:'smoke'})}
 
 function armAngle(now){
-  const rest=Math.PI-.25,fired=-1.2,a=S.armAnim;
-  if(!a)return rest;
+  const rest=Math.PI-.25,a=S.armAnim;
+  if(!a)return S.phase==='aim'?-S.shotAngle*Math.PI/180:rest;
+  const fired=-(a.deg??60)*Math.PI/180;
   const e=now-a.t0;
+  if(a.from!==undefined&&e<a.up){const k=e/a.up;
+    if(k<.45)return a.from+(rest-a.from)*(k/.45);
+    return rest+(fired-rest)*Math.sin(Math.PI/2*(k-.45)/.55)}
   if(e<a.up)return rest+(fired-rest)*Math.sin(Math.PI/2*e/a.up);
   if(e<a.up+250)return fired;
   if(e<a.up+900){const k=(e-a.up-250)/650;return fired+(rest-fired)*k}
   S.armAnim=null;return rest;
 }
-function launchPoint(p){const bx=p.x+S.aimDir*(p.w/2+34);return {x:bx+S.aimDir*16,y:GY-84}}
+const ARM=46;
+function pivotOf(p){return {x:p.x+S.aimDir*(p.w/2+34+S.catOff),y:GY-44}}
+function launchPoint(p,deg){const pv=pivotOf(p),r=(deg??60)*Math.PI/180;return {x:pv.x+S.aimDir*ARM*Math.cos(r),y:pv.y-ARM*Math.sin(r)}}
 
-function shoot(p,t,fire){
+function shoot(p,sim,fire){
   return new Promise(res=>{
-    const up=RM?60:160;S.armAnim={t0:performance.now(),up};
+    const deg=S.shotAngle,up=RM?60:220;S.armAnim={t0:performance.now(),up,deg,from:-deg*Math.PI/180};
     setTimeout(()=>{
-      S.loaded=false;const lp=launchPoint(p);
-      const dx=Math.abs(t.x-lp.x);
-      flying.push({sx:lp.x,sy:lp.y,tx:t.x,ty:GY-80,h:120+dx*.18,t0:performance.now(),dur:RM?350:1150,fire,onHit:()=>{
-        impact(t.x,GY-80,fire);res();}});
+      S.loaded=false;
+      flying.push({pts:sim.pts,t0:performance.now(),speed:RM?6:1.5,fire,onHit:()=>{
+        S.trail=sim.pts;impact(sim.x,Math.min(sim.y,GY-4),fire);res();}});
     },up);
   });
 }
 function misfire(p){
   return new Promise(res=>{
-    const up=RM?60:160;S.armAnim={t0:performance.now(),up};
+    const up=RM?60:160;S.armAnim={t0:performance.now(),up,deg:80};
     setTimeout(()=>{
-      S.loaded=false;const lp=launchPoint(p);
+      S.loaded=false;const lp=launchPoint(p,80);
       flying.push({sx:lp.x,sy:lp.y,tx:p.x,ty:GY-90,h:260,t0:performance.now(),dur:RM?350:1300,fire:false,onHit:()=>{impact(p.x,GY-90,false);res()}});
     },up);
   });
@@ -593,8 +696,9 @@ function drawCastle(p,t,now){
     ctx.beginPath();ctx.moveTo(x-11,ay-12);ctx.lineTo(x+11,ay-12);ctx.lineTo(x,ay+2);ctx.closePath();ctx.fill();ctx.stroke();
   }
   // alvo
-  if(S.phase==='target'&&S.players[S.cur]!==p){
-    ctx.save();ctx.strokeStyle='#e2452f';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.lineDashOffset=-t*30;
+  if(S.phase==='aim'&&S.players[S.cur]!==p){
+    const on=S.target===p;
+    ctx.save();ctx.strokeStyle=on?'#e2452f':'rgba(226,69,47,.35)';ctx.lineWidth=on?3.5:2;ctx.setLineDash(on?[]:[8,6]);ctx.lineDashOffset=-t*30;
     ctx.beginPath();ctx.ellipse(x,GY-70,w*.62+Math.sin(t*5)*3,95,0,0,Math.PI*2);ctx.stroke();ctx.restore();
   }
   drawName(p);
@@ -616,7 +720,7 @@ function drawRubble(p,t){
   if(Math.random()<.03)smoke(p.x+randInt(-30,30),GY-20);
 }
 function drawCatapult(p,now){
-  const dir=S.aimDir,bx=p.x+dir*(p.w/2+34);
+  const dir=S.aimDir,bx=pivotOf(p).x;
   ctx.save();ctx.translate(bx,GY);ctx.scale(dir,1);
   ctx.fillStyle='#8a5a34';ctx.fillRect(-30,-22,60,9);
   ctx.strokeStyle='#6e4426';ctx.lineWidth=5;ctx.lineCap='round';
@@ -628,7 +732,7 @@ function drawCatapult(p,now){
   ctx.save();ctx.translate(0,-44);ctx.rotate(a);
   ctx.fillStyle='#a8743f';ctx.fillRect(-8,-3,52,6);
   ctx.fillStyle='#5b3a1f';ctx.beginPath();ctx.arc(46,0,9,0,Math.PI);ctx.closePath();ctx.fill();
-  if(S.loaded){ctx.fillStyle=S.fire&&S.phase==='target'?'#ff8a2a':'#8d867a';ctx.beginPath();ctx.arc(46,-3,7,0,Math.PI*2);ctx.fill()}
+  if(S.loaded){ctx.fillStyle=S.fire&&(S.phase==='aim'||S.phase==='anim')?'#ff8a2a':'#8d867a';ctx.beginPath();ctx.arc(46,-3,7,0,Math.PI*2);ctx.fill()}
   ctx.restore();
   ctx.fillStyle='#3a2a18';ctx.beginPath();ctx.arc(0,-44,3.5,0,Math.PI*2);ctx.fill();
   ctx.restore();
@@ -639,6 +743,10 @@ function cloud(c){ctx.fillStyle='rgba(255,255,255,.92)';const s=c.s;
 
 let last=performance.now();
 function frame(now){
+  requestAnimationFrame(frame);
+  try{draw(now)}catch(err){console.error(err)}
+}
+function draw(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;const t=now/1000;
   clouds.forEach(c=>{c.x+=dt*8*c.s;if(c.x>W+80)c.x=-90});
   parts.forEach(q=>{q.life-=dt;q.vy+=q.g*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.rot+=dt*4;
@@ -659,12 +767,34 @@ function frame(now){
 
   S.players.forEach(p=>drawCastle(p,t,now));
   const cp=S.players[S.cur];
-  if(cp&&cp.alive&&S.phase!=='setup'&&S.phase!=='over')drawCatapult(cp,now);
+  const playing=cp&&cp.alive&&S.phase!=='setup'&&S.phase!=='over';
+  if(playing){
+    // rastro do último disparo
+    if(S.trail){ctx.save();ctx.fillStyle='rgba(255,255,255,.85)';
+      for(let i=0;i<S.trail.length;i+=10){const [x,y]=S.trail[i];if(y>0){ctx.beginPath();ctx.arc(x,y,2.2,0,Math.PI*2);ctx.fill()}}ctx.restore()}
+    // marca onde caiu o tiro anterior deste jogador
+    if(S.phase==='aim'&&cp.lastLand&&cp.lastLand.x!=null){
+      const lx=cp.lastLand.x;ctx.save();ctx.strokeStyle=cp.color;ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(lx-7,GY-7);ctx.lineTo(lx+7,GY+7);ctx.moveTo(lx+7,GY-7);ctx.lineTo(lx-7,GY+7);ctx.stroke();
+      ctx.font='700 13px Nunito, sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.strokeStyle='rgba(20,25,35,.7)';ctx.lineWidth=3;
+      const lab=`último: ${cp.lastLand.angle}°`;ctx.strokeText(lab,lx,GY-12);ctx.fillText(lab,lx,GY-12);ctx.restore();
+    }
+    drawCatapult(cp,now);
+    if(S.phase==='aim')drawAimGuide(cp);
+  }
 
   // projéteis
   flying=flying.filter(f=>{
-    const k=Math.min(1,(now-f.t0)/f.dur);
-    const x=f.sx+(f.tx-f.sx)*k,y=f.sy+(f.ty-f.sy)*k-4*f.h*k*(1-k);
+    let x,y,k;
+    if(f.pts){
+      const i=Math.max(0,Math.min(f.pts.length-1,Math.floor((now-f.t0)/1000*120*f.speed)));
+      [x,y]=f.pts[i];k=i>=f.pts.length-1?1:0;
+      if(y<-6){ctx.save();ctx.fillStyle='rgba(20,25,35,.75)';ctx.beginPath();ctx.moveTo(x,4);ctx.lineTo(x-8,18);ctx.lineTo(x+8,18);ctx.closePath();ctx.fill();
+        ctx.font='700 12px Nunito, sans-serif';ctx.textAlign='center';ctx.fillText(Math.round((GY-y)/PXM)+' m',x,32);ctx.restore()}
+    }else{
+      k=Math.max(0,Math.min(1,(now-f.t0)/f.dur));
+      x=f.sx+(f.tx-f.sx)*k;y=f.sy+(f.ty-f.sy)*k-4*f.h*k*(1-k);
+    }
     if(f.fire){for(let i=0;i<2;i++)parts.push({x,y,vx:(Math.random()-.5)*40,vy:(Math.random()-.5)*40,life:.4,max:.4,c:pick(['#ffd24a','#ff8a2a','#e2451c']),s:6,g:0,rot:0,type:'chunk'})}
     else if(Math.random()<.5)parts.push({x,y,vx:0,vy:0,life:.35,max:.35,c:'rgba(255,255,255,',s:4,g:0,rot:0,type:'smoke'});
     ctx.save();ctx.translate(x,y);ctx.rotate(t*10);
@@ -682,17 +812,33 @@ function frame(now){
     ctx.lineWidth=6;ctx.strokeStyle=x.stroke;ctx.strokeText(x.txt,x.x,x.y-e*50);ctx.fillStyle=x.color;ctx.fillText(x.txt,x.x,x.y-e*50);ctx.globalAlpha=1});
   ctx.restore();
   if(flash>0){ctx.fillStyle=`rgba(255,240,210,${flash})`;ctx.fillRect(0,0,W,H)}
-  requestAnimationFrame(frame);
+}
+
+/* transferidor: linha da inclinação, arco e valor em graus */
+function drawAimGuide(p){
+  const pv=pivotOf(p),dir=S.aimDir,r=S.shotAngle*Math.PI/180,L=110;
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.setLineDash([4,5]);
+  ctx.beginPath();ctx.moveTo(pv.x,pv.y);ctx.lineTo(pv.x+dir*L,pv.y);ctx.stroke();
+  ctx.setLineDash([]);ctx.strokeStyle='#ffd24a';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(pv.x,pv.y);ctx.lineTo(pv.x+dir*L*Math.cos(r),pv.y-L*Math.sin(r));ctx.stroke();
+  const ex=pv.x+dir*L*Math.cos(r),ey=pv.y-L*Math.sin(r),ah=10,ang=Math.atan2(ey-pv.y,ex-pv.x);
+  ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-ah*Math.cos(ang-.45),ey-ah*Math.sin(ang-.45));ctx.lineTo(ex-ah*Math.cos(ang+.45),ey-ah*Math.sin(ang+.45));ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2;ctx.beginPath();
+  if(dir>0)ctx.arc(pv.x,pv.y,42,-r,0);else ctx.arc(pv.x,pv.y,42,Math.PI,Math.PI+r);ctx.stroke();
+  const mr=r/2,tx=pv.x+dir*62*Math.cos(mr),ty=pv.y-62*Math.sin(mr)+6;
+  ctx.font='700 20px Fredoka, Nunito, sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(20,25,35,.75)';
+  ctx.strokeText(S.shotAngle+'°',tx,ty);ctx.fillStyle='#fff';ctx.fillText(S.shotAngle+'°',tx,ty);
+  ctx.restore();
 }
 
 function canvasPoint(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
 function castleAt(pt){return S.players.find(p=>p.alive&&Math.abs(pt.x-p.x)<p.w*.6&&pt.y>GY-200&&pt.y<GY+45)}
-cv.addEventListener('click',e=>{if(S.phase!=='target')return;const p=castleAt(canvasPoint(e));if(p&&p!==S.players[S.cur])fireAt(p)});
+cv.addEventListener('click',e=>{if(S.phase!=='aim')return;const p=castleAt(canvasPoint(e));if(p&&p!==S.players[S.cur])selectTarget(p)});
 cv.addEventListener('pointermove',e=>{
-  if(S.phase!=='target'){cv.style.cursor='default';return}
+  if(S.phase!=='aim'){cv.style.cursor='default';return}
   const p=castleAt(canvasPoint(e)),me=S.players[S.cur];
-  cv.style.cursor=p&&p!==me?'crosshair':'default';
-  if(p&&p!==me)S.aimDir=p.x>me.x?1:-1;
+  cv.style.cursor=p&&p!==me?'pointer':'default';
 });
 
 renderSetup();makePlayers();requestAnimationFrame(frame);
